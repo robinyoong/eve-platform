@@ -11,12 +11,6 @@ import { createLogger, request, runCases, storm } from "./lib.mjs";
 
 const log = createLogger();
 
-function allCorrectAnswers(questions) {
-  // POST responses include correctOptionId in results; for requests we need
-  // known keys. We'll learn correct ids from a scored fixture after GET.
-  return questions;
-}
-
 const cases = [
   {
     name: "GET /quiz returns the quiz page",
@@ -313,7 +307,6 @@ const cases = [
   {
     name: "POST /api/quiz rejects oversized payload",
     async run(log) {
-      const answers = { "minimum-agent": "b" };
       // Pad with a huge junk string field via raw body
       const body = `{"answers":{"minimum-agent":"b"},"pad":"${"x".repeat(40_000)}"}`;
       const res = await request("/api/quiz", {
@@ -508,9 +501,6 @@ const cases = [
     },
   },
 ];
-
-// silence unused helper lint in case of tree shaking in editors
-void allCorrectAnswers;
 
 await runCases(cases, log);
 const { failed } = log.summary();
