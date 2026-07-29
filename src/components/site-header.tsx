@@ -9,6 +9,12 @@ export function SiteHeader() {
         </Link>
 
         <nav className="flex items-center gap-6">
+          <Link
+            href="/quiz"
+            className="text-sm text-fg-muted transition-colors hover:text-fg"
+          >
+            Quiz
+          </Link>
           <a
             href="#learn"
             className="hidden text-sm text-fg-muted transition-colors hover:text-fg sm:inline"
