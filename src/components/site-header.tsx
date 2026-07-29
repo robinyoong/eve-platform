@@ -18,12 +18,12 @@ export function SiteHeader() {
           >
             Quiz
           </Link>
-          <a
+          <Link
             href="/#learn"
             className="hidden text-sm text-fg-muted transition-colors hover:text-fg sm:inline"
           >
             Learn
-          </a>
+          </Link>
           <a
             href="https://vercel.com/docs/eve"
             target="_blank"
@@ -32,12 +32,12 @@ export function SiteHeader() {
           >
             Docs
           </a>
-          <a
+          <Link
             href="/#get-started"
             className="rounded-md bg-btn px-3 py-1.5 text-sm font-medium text-btn-fg transition-opacity hover:opacity-90"
           >
             Get started
-          </a>
+          </Link>
         </nav>
       </div>
     </header>
