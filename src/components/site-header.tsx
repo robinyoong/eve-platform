@@ -10,17 +10,23 @@ export function SiteHeader() {
 
         <nav className="flex items-center gap-6">
           <Link
+            href="/chatbot"
+            className="text-sm text-fg-muted transition-colors hover:text-fg"
+          >
+            Chatbot
+          </Link>
+          <Link
             href="/quiz"
             className="text-sm text-fg-muted transition-colors hover:text-fg"
           >
             Quiz
           </Link>
-          <a
-            href="#learn"
+          <Link
+            href="/#learn"
             className="hidden text-sm text-fg-muted transition-colors hover:text-fg sm:inline"
           >
             Learn
-          </a>
+          </Link>
           <a
             href="https://vercel.com/docs/eve"
             target="_blank"
@@ -29,12 +35,12 @@ export function SiteHeader() {
           >
             Docs
           </a>
-          <a
-            href="#get-started"
+          <Link
+            href="/#get-started"
             className="rounded-md bg-btn px-3 py-1.5 text-sm font-medium text-btn-fg transition-opacity hover:opacity-90"
           >
             Get started
-          </a>
+          </Link>
         </nav>
       </div>
     </header>
