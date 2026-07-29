@@ -16,6 +16,12 @@ export function SiteHeader() {
             Learn
           </a>
           <a
+            href="#chat"
+            className="hidden text-sm text-fg-muted transition-colors hover:text-fg sm:inline"
+          >
+            Ask
+          </a>
+          <a
             href="https://vercel.com/docs/eve"
             target="_blank"
             rel="noopener noreferrer"
