@@ -20,6 +20,31 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+## Ask about eve
+
+The page includes a chatbot that answers questions about eve, grounded in the tutorial content
+from `src/lib/tutorial.ts`. Answers stream token by token from `POST /api/chat`, and the panel has
+a toggle to switch between Grok 4.5, Claude Opus 5 and ChatGPT-5.6.
+
+All three models are called through [Vercel AI Gateway](https://vercel.com/docs/ai-gateway), so a
+single credential is all that is needed:
+
+```bash
+AI_GATEWAY_API_KEY=your_gateway_key
+```
+
+Without it the launcher still renders and the endpoint answers `503`. Set the optional
+`AI_GATEWAY_BASE_URL` to point the app at a gateway-compatible proxy instead of `ai-gateway.vercel.sh`.
+
+Model ids live in `src/lib/chat-models.ts`. Only ids from that catalog can reach the gateway; the
+browser never sends a raw model slug.
+
+Run the tests with:
+
+```bash
+npm test
+```
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:

@@ -5,6 +5,7 @@ import { TutorialSteps } from "@/components/tutorial-steps";
 import { PrimitivesStrip } from "@/components/primitives-strip";
 import { FinalCTA } from "@/components/final-cta";
 import { SiteFooter } from "@/components/site-footer";
+import { ChatWidget } from "@/components/chat-widget";
 
 export default function Home() {
   return (
@@ -18,6 +19,7 @@ export default function Home() {
         <FinalCTA />
       </main>
       <SiteFooter />
+      <ChatWidget />
     </>
   );
 }
