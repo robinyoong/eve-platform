@@ -63,17 +63,35 @@ function resolveModel(modelId: ChatModelId) {
   return config.gatewayModel;
 }
 
-function extractLastUserText(messages: UIMessage[]): string {
-  for (let i = messages.length - 1; i >= 0; i--) {
-    const message = messages[i];
-    if (message.role !== "user") continue;
-    const text = message.parts
+type ChatRequestMessage = UIMessage & {
+  content?: string;
+  parts?: Array<{ type: string; text?: string }>;
+};
+
+function extractTextFromMessage(message: ChatRequestMessage): string {
+  if (Array.isArray(message.parts) && message.parts.length > 0) {
+    return message.parts
       .filter(
-        (part): part is { type: "text"; text: string } => part.type === "text",
+        (part): part is { type: "text"; text: string } =>
+          part.type === "text" && typeof part.text === "string",
       )
       .map((part) => part.text)
       .join("\n")
       .trim();
+  }
+
+  if (typeof message.content === "string") {
+    return message.content.trim();
+  }
+
+  return "";
+}
+
+function extractLastUserText(messages: ChatRequestMessage[]): string {
+  for (let i = messages.length - 1; i >= 0; i--) {
+    const message = messages[i];
+    if (message.role !== "user") continue;
+    const text = extractTextFromMessage(message);
     if (text) return text;
   }
   return "";

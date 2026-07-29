@@ -10,13 +10,18 @@ import {
   type ChatModelId,
 } from "@/lib/chatbot";
 
-function messageText(
-  message: { parts: Array<{ type: string; text?: string }> },
-): string {
-  return message.parts
-    .filter((part) => part.type === "text" && typeof part.text === "string")
-    .map((part) => part.text as string)
-    .join("");
+function messageText(message: {
+  content?: string;
+  parts?: Array<{ type: string; text?: string }>;
+}): string {
+  if (Array.isArray(message.parts) && message.parts.length > 0) {
+    return message.parts
+      .filter((part) => part.type === "text" && typeof part.text === "string")
+      .map((part) => part.text as string)
+      .join("");
+  }
+
+  return typeof message.content === "string" ? message.content : "";
 }
 
 export function ChatbotPanel() {
