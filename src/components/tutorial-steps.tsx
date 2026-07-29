@@ -6,39 +6,46 @@ import { CodePanel } from "@/components/code-panel";
 import { TUTORIAL_STEPS } from "@/lib/tutorial";
 
 export function TutorialSteps() {
-  const [activeId] = useState(TUTORIAL_STEPS[0]?.id ?? null);
+  const [activeId, setActiveId] = useState(TUTORIAL_STEPS[0]?.id ?? null);
 
   useEffect(() => {
-    const sections = TUTORIAL_STEPS.map((step) =>
-      document.getElementById(`step-${step.id}`)
-    ).filter((el): el is HTMLElement => !!el);
+    const sections = TUTORIAL_STEPS.map((step) => ({
+      id: step.id,
+      el: document.getElementById(`step-${step.id}`),
+    })).filter((s): s is { id: string; el: HTMLElement } => !!s.el);
 
     if (sections.length === 0) return;
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const visible = entries
-          .filter((entry) => entry.isIntersecting)
-          .sort(
-            (a, b) =>
-              (b.intersectionRatio ?? 0) - (a.intersectionRatio ?? 0)
-          );
+    const updateActive = () => {
+      const nearBottom =
+        window.innerHeight + window.scrollY >=
+        document.documentElement.scrollHeight - 48;
 
-        const top = visible[0];
-        if (!top?.target.id) return;
-        // Keep activeId stuck on the first step; do not sync on scroll.
-      },
-      {
-        rootMargin: "-20% 0px -45% 0px",
-        threshold: [0.2, 0.4, 0.6],
+      if (nearBottom) {
+        setActiveId(sections[sections.length - 1].id);
+        return;
       }
-    );
 
-    for (const section of sections) {
-      observer.observe(section);
-    }
+      const offset = window.innerHeight * 0.3;
+      let current = sections[0].id;
 
-    return () => observer.disconnect();
+      for (const { id, el } of sections) {
+        if (el.getBoundingClientRect().top <= offset) {
+          current = id;
+        }
+      }
+
+      setActiveId(current);
+    };
+
+    updateActive();
+    window.addEventListener("scroll", updateActive, { passive: true });
+    window.addEventListener("resize", updateActive);
+
+    return () => {
+      window.removeEventListener("scroll", updateActive);
+      window.removeEventListener("resize", updateActive);
+    };
   }, []);
 
   return (
