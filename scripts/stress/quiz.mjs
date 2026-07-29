@@ -185,6 +185,80 @@ const cases = [
     },
   },
   {
+    name: "POST /api/quiz partial submission does not leak unanswered keys",
+    async run(log) {
+      const res = await request("/api/quiz", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          answers: { "minimum-agent": "b" },
+        }),
+      });
+      if (res.status !== 200 || !Array.isArray(res.json?.results)) {
+        log.fail(this.name, `status ${res.status} body=${res.text.slice(0, 300)}`);
+        return;
+      }
+      if (res.json.results.length !== 1) {
+        log.fail(
+          this.name,
+          `expected 1 result, got ${res.json.results.length} (answer key leak?)`,
+        );
+        return;
+      }
+      const only = res.json.results[0];
+      if (only.questionId !== "minimum-agent" || only.correctOptionId !== "b") {
+        log.fail(this.name, `unexpected result ${JSON.stringify(only)}`);
+        return;
+      }
+      // Unanswered question ids must not appear anywhere in the payload key fields
+      const leakedIds = [
+        "tool-registration",
+        "skills-loading",
+        "schedule-format",
+        "slack-credentials",
+      ].filter((id) =>
+        res.json.results.some((r) => r.questionId === id || r.correctOptionId && r.questionId === id),
+      );
+      if (leakedIds.length) {
+        log.fail(this.name, `leaked ${leakedIds.join(",")}`);
+        return;
+      }
+      log.pass(this.name, "1 answered result only");
+    },
+  },
+  {
+    name: "GET / and /quiz expose Quiz nav for mobile",
+    async run(log) {
+      for (const path of ["/", "/quiz"]) {
+        const res = await request(path);
+        if (res.status !== 200) {
+          log.fail(this.name, `${path} status ${res.status}`);
+          return;
+        }
+        // The Quiz link must not be gated behind a sm: breakpoint class in markup.
+        if (!/href="\/quiz"/.test(res.text) && !/href=\\?"\/quiz\\?"/.test(res.text)) {
+          log.fail(this.name, `${path} missing /quiz href`);
+          return;
+        }
+        if (
+          /href="\/quiz"[^>]*(?:hidden[^"]*sm:inline|className":"hidden text-sm)/.test(res.text) ||
+          /"hidden text-sm text-fg-muted[^"]*sm:inline[^"]*"[^"]*\/quiz/.test(res.text)
+        ) {
+          // Soft check — RSC payload class strings vary; fail only on classic gated class next to Quiz
+          if (/hidden text-sm text-fg-muted transition-colors hover:text-fg sm:inline/.test(res.text)) {
+            log.fail(this.name, `${path} Quiz link still sm-gated`);
+            return;
+          }
+        }
+        if (!/\/#learn/.test(res.text) || !/\/#get-started/.test(res.text)) {
+          log.fail(this.name, `${path} missing root-relative header anchors`);
+          return;
+        }
+      }
+      log.pass(this.name);
+    },
+  },
+  {
     name: "POST /api/quiz rejects empty answers",
     async run(log) {
       const res = await request("/api/quiz", {

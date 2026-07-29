@@ -1,8 +1,4 @@
-import {
-  QUIZ_QUESTIONS,
-  getScoreLabel,
-  scoreQuiz,
-} from "@/lib/quiz";
+import { QUIZ_QUESTIONS, getScoreLabel, scoreQuiz } from "@/lib/quiz";
 
 export const runtime = "nodejs";
 
@@ -98,15 +94,15 @@ export async function POST(request: Request) {
       label: getScoreLabel(scored.percentage),
       answered: keys.length,
       complete: keys.length === QUIZ_QUESTIONS.length,
-      results: scored.results.map(
-        ({ question, selectedOptionId, isCorrect }) => ({
+      results: scored.results
+        .filter(({ selectedOptionId }) => selectedOptionId !== undefined)
+        .map(({ question, selectedOptionId, isCorrect }) => ({
           questionId: question.id,
           selectedOptionId,
           isCorrect,
           correctOptionId: question.correctOptionId,
           explanation: question.explanation,
-        }),
-      ),
+        })),
     },
     200,
   );
