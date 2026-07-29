@@ -6,7 +6,7 @@ import { CodePanel } from "@/components/code-panel";
 import { TUTORIAL_STEPS } from "@/lib/tutorial";
 
 export function TutorialSteps() {
-  const [activeId, setActiveId] = useState(TUTORIAL_STEPS[0]?.id ?? null);
+  const [activeId] = useState(TUTORIAL_STEPS[0]?.id ?? null);
 
   useEffect(() => {
     const sections = TUTORIAL_STEPS.map((step) =>
@@ -26,8 +26,7 @@ export function TutorialSteps() {
 
         const top = visible[0];
         if (!top?.target.id) return;
-        const id = top.target.id.replace(/^step-/, "");
-        setActiveId(id);
+        // Keep activeId stuck on the first step; do not sync on scroll.
       },
       {
         rootMargin: "-20% 0px -45% 0px",
