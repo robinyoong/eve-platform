@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "stress:tutorial": "node scripts/stress/tutorial.mjs",
+    "stress": "node scripts/stress/run-all.mjs"
   },
   "dependencies": {
     "geist": "^1.7.2",
