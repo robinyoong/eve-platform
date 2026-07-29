@@ -54,6 +54,8 @@ export function CodePanel({ tabs, filename }: CodePanelProps) {
         <button
           type="button"
           onClick={handleCopy}
+          aria-label={copied ? "Code copied to clipboard" : "Copy code to clipboard"}
+          aria-live="polite"
           className="shrink-0 px-2 py-1 text-xs text-fg-muted transition-colors hover:text-fg"
         >
           {copied ? "Copied" : "Copy"}
