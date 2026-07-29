@@ -5,33 +5,24 @@ import { useEffect, useRef, useState, useEffectEvent } from "react";
 import {
   CHAT_MODELS,
   DEFAULT_CHAT_MODEL,
-  type ChatModelId,
 } from "@/lib/chat-models";
+import type { EveChatMessage } from "@/lib/chat-stream";
+import { SUGGESTED_QUESTIONS } from "@/lib/eve-knowledge";
 
-const SUGGESTIONS = [
-  "What is eve?",
-  "How do I add a tool?",
-  "What goes in skills/?",
-] as const;
-
-function messageText(parts: { type: string; text?: string }[]) {
+function messageText(parts: EveChatMessage["parts"]) {
   return parts
-    .filter((part) => part.type === "text" && typeof part.text === "string")
-    .map((part) => part.text)
+    .filter((part) => part.type === "text")
+    .map((part) => ("text" in part ? part.text : ""))
     .join("");
 }
 
 export function EveChatbot() {
   const [input, setInput] = useState("");
-  const [model, setModel] = useState<ChatModelId>(DEFAULT_CHAT_MODEL);
-  const [error, setError] = useState<string | null>(null);
+  const [modelId, setModelId] = useState(DEFAULT_CHAT_MODEL.id);
   const bottomRef = useRef<HTMLDivElement>(null);
 
-  const { messages, sendMessage, status, stop } = useChat({
-    onError: (err) => {
-      setError(err.message || "Something went wrong. Try again.");
-    },
-  });
+  const { messages, sendMessage, status, stop, error, clearError, regenerate } =
+    useChat<EveChatMessage>();
 
   const isStreaming = status === "streaming" || status === "submitted";
 
@@ -43,12 +34,12 @@ export function EveChatbot() {
     scrollToBottom();
   }, [messages, status]);
 
-  async function submit(text: string) {
+  function submit(text: string) {
     const trimmed = text.trim();
     if (!trimmed || isStreaming) return;
-    setError(null);
+    clearError();
     setInput("");
-    await sendMessage({ text: trimmed }, { body: { model } });
+    void sendMessage({ text: trimmed }, { body: { modelId } });
   }
 
   return (
@@ -76,15 +67,16 @@ export function EveChatbot() {
               className="grid grid-cols-3 gap-1 rounded-md border border-border bg-code-bg p-1"
             >
               {CHAT_MODELS.map((option) => {
-                const selected = model === option.id;
+                const selected = modelId === option.id;
                 return (
                   <button
                     key={option.id}
                     type="button"
                     role="radio"
                     aria-checked={selected}
-                    onClick={() => setModel(option.id)}
-                    className={`rounded px-2.5 py-1.5 text-center text-xs transition-colors sm:text-sm ${
+                    disabled={isStreaming}
+                    onClick={() => setModelId(option.id)}
+                    className={`rounded px-2.5 py-1.5 text-center text-xs transition-colors sm:text-sm disabled:opacity-60 ${
                       selected
                         ? "bg-btn text-btn-fg"
                         : "text-fg-muted hover:text-fg"
@@ -98,18 +90,22 @@ export function EveChatbot() {
           </div>
 
           <div className="flex h-[min(28rem,60vh)] flex-col">
-            <div className="flex-1 space-y-4 overflow-y-auto px-4 py-4">
+            <div
+              role="log"
+              aria-live="polite"
+              className="flex-1 space-y-4 overflow-y-auto px-4 py-4"
+            >
               {messages.length === 0 ? (
                 <div className="animate-fade-up flex h-full flex-col justify-center gap-4">
                   <p className="text-sm leading-6 text-fg-muted">
                     Ask how eve structures agents, or try a starter question.
                   </p>
                   <div className="flex flex-wrap gap-2">
-                    {SUGGESTIONS.map((suggestion) => (
+                    {SUGGESTED_QUESTIONS.map((suggestion) => (
                       <button
                         key={suggestion}
                         type="button"
-                        onClick={() => void submit(suggestion)}
+                        onClick={() => submit(suggestion)}
                         className="rounded-md border border-border bg-code-bg px-3 py-1.5 text-left text-sm text-fg transition-colors hover:border-fg-muted/50 hover:bg-bg"
                       >
                         {suggestion}
@@ -121,6 +117,7 @@ export function EveChatbot() {
                 messages.map((message) => {
                   const text = messageText(message.parts);
                   const isUser = message.role === "user";
+                  const modelLabel = message.metadata?.modelLabel;
                   return (
                     <div
                       key={message.id}
@@ -137,7 +134,7 @@ export function EveChatbot() {
                       >
                         {!isUser && (
                           <p className="mb-1.5 font-mono text-[11px] tracking-wide text-fg-muted uppercase">
-                            eve
+                            {modelLabel ?? "eve"}
                           </p>
                         )}
                         {text ||
@@ -160,16 +157,23 @@ export function EveChatbot() {
             </div>
 
             {error ? (
-              <p className="border-t border-border px-4 py-2 text-sm text-red-400">
-                {error}
-              </p>
+              <div className="border-t border-border px-4 py-2 text-sm text-red-400">
+                Something went wrong.{" "}
+                <button
+                  type="button"
+                  onClick={() => void regenerate({ body: { modelId } })}
+                  className="underline underline-offset-2"
+                >
+                  Retry
+                </button>
+              </div>
             ) : null}
 
             <form
               className="flex items-end gap-2 border-t border-border p-3"
               onSubmit={(event) => {
                 event.preventDefault();
-                void submit(input);
+                submit(input);
               }}
             >
               <label className="sr-only" htmlFor="eve-chat-input">
@@ -183,7 +187,7 @@ export function EveChatbot() {
                 onKeyDown={(event) => {
                   if (event.key === "Enter" && !event.shiftKey) {
                     event.preventDefault();
-                    void submit(input);
+                    submit(input);
                   }
                 }}
                 placeholder="Ask about eve…"

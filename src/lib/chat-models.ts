@@ -1,39 +1,39 @@
-export const CHAT_MODELS = [
+export type ChatModel = {
+  /** Stable id used in the request body and in message metadata. */
+  id: string;
+  label: string;
+  vendor: string;
+  /** AI Gateway model slug in `creator/model-name` form. */
+  gatewayModelId: string;
+};
+
+export const CHAT_MODELS: readonly ChatModel[] = [
   {
-    id: "grok",
+    id: "grok-4.5",
     label: "Grok 4.5",
-    modelId: "xai/grok-4.5",
+    vendor: "xAI",
+    gatewayModelId: "xai/grok-4.5",
   },
   {
-    id: "claude",
+    id: "claude-opus-5",
     label: "Claude Opus 5",
-    modelId: "anthropic/claude-opus-5",
+    vendor: "Anthropic",
+    gatewayModelId: "anthropic/claude-opus-5",
   },
   {
-    id: "chatgpt",
+    id: "gpt-5.6",
     label: "ChatGPT-5.6",
-    modelId: "openai/gpt-5.6-sol",
+    vendor: "OpenAI",
+    gatewayModelId: "openai/gpt-5.6-sol",
   },
-] as const;
+];
 
-export type ChatModelId = (typeof CHAT_MODELS)[number]["id"];
+export const DEFAULT_CHAT_MODEL = CHAT_MODELS[0];
 
-export const DEFAULT_CHAT_MODEL: ChatModelId = "grok";
-
-const MODEL_BY_ID = Object.fromEntries(
-  CHAT_MODELS.map((model) => [model.id, model]),
-) as Record<ChatModelId, (typeof CHAT_MODELS)[number]>;
-
-export function resolveChatModel(model?: string) {
-  if (model && model in MODEL_BY_ID) {
-    return MODEL_BY_ID[model as ChatModelId];
-  }
-  return MODEL_BY_ID[DEFAULT_CHAT_MODEL];
-}
-
-export function isChatModelId(value: unknown): value is ChatModelId {
-  return (
-    typeof value === "string" &&
-    CHAT_MODELS.some((model) => model.id === value)
-  );
+/**
+ * Never pass a client-supplied slug straight to the gateway — only ids from
+ * this catalog can reach it.
+ */
+export function findChatModel(id: unknown): ChatModel | undefined {
+  return CHAT_MODELS.find((model) => model.id === id);
 }
